@@ -66,7 +66,7 @@ public class Global extends GlobalSettings {
 		Disciplina es = new Disciplina("Engenharia de Software");
 		es.addTema(new Tema("Qualidade de Software"));
 		es.addTema(new Tema("Gerencia de Equipe"));
-		es.addTema(new Tema("SCRUM"));
+		//es.addTema(new Tema("SCRUM"));
 		
 		Disciplina ad1 = new Disciplina("Analise de Dados 1");
 		ad1.addTema(new Tema("Introdução ao R/Octave"));
