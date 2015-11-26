@@ -1,5 +1,7 @@
 package models;
 
+import models.dao.GenericDAOImpl;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
