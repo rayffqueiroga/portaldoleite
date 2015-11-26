@@ -4,14 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import models.Dica;
-import models.DicaAssunto;
-import models.DicaConselho;
-import models.DicaDisciplina;
-import models.DicaMaterial;
-import models.Disciplina;
-import models.MetaDica;
-import models.Tema;
+import models.*;
 import models.dao.GenericDAOImpl;
 import play.Logger;
 import play.data.DynamicForm;
@@ -24,7 +17,7 @@ import play.mvc.Security;
 public class Application extends Controller {
 	private static final int MAX_DENUNCIAS = 3;
 	private static GenericDAOImpl dao = new GenericDAOImpl();
-	
+    private static Map<Integer, Dica> mapaDica = null;
 	@Transactional
 	@Security.Authenticated(Secured.class)
     public static Result index() {
@@ -96,54 +89,19 @@ public class Application extends Controller {
 		if (filledForm.hasErrors()) {
 			return tema(idTema);
 		} else {
-			String tipoKey = formMap.get("tipo");
-			switch (tipoKey) {
-				case "assunto":
-					String assunto = formMap.get("assunto");
-					DicaAssunto dicaAssunto = new DicaAssunto(assunto);
-					
-					tema.addDica(dicaAssunto);
-					dicaAssunto.setTema(tema);
-					dicaAssunto.setUser(userName);
-					dao.persist(dicaAssunto);				
-					break;
-				case "conselho":
-					String conselho = formMap.get("conselho");
-					DicaConselho dicaConselho = new DicaConselho(conselho);
-					
-					tema.addDica(dicaConselho);
-					dicaConselho.setTema(tema);
-					dicaConselho.setUser(userName);
-					dao.persist(dicaConselho);				
-					break;
-				case "disciplina":
-					String disciplinas = formMap.get("disciplinas");
+			int tipoKey = Integer.valueOf(formMap.get("tipo"));
+            String descricao = formMap.get("descricao");
 					String razao = formMap.get("razao");
-					
-					DicaDisciplina dicaDisciplina = new DicaDisciplina(disciplinas, razao);
-					
-					tema.addDica(dicaDisciplina);
-					dicaDisciplina.setTema(tema);
-					dicaDisciplina.setUser(userName);
-					dao.persist(dicaDisciplina);
-					break;
-				case "material":
-					String url = formMap.get("url");
-					DicaMaterial dicaMaterial = new DicaMaterial(url);
-									
-					tema.addDica(dicaMaterial);
-					dicaMaterial.setTema(tema);
-					dicaMaterial.setUser(userName);
-					dao.persist(dicaMaterial);				
-					break;
-				default:
-					break;
-			}
-			
+            Map<Integer, Dica> tiposDeDica = Dica.getMapaDeDicas(descricao, razao);
+            Dica dica = tiposDeDica.get(tipoKey);
+            dica.setTema(tema);
+            dica.setUser(userName);
+            tema.addDica(dica);
+            dao.persist(dica);
 			dao.merge(tema);
 			
 			dao.flush();			
-			
+			tiposDeDica = null;
 			return redirect(routes.Application.tema(idTema));
 		}
 	}
@@ -338,25 +296,8 @@ public class Application extends Controller {
 		Dica dica = dao.findByEntityId(Dica.class, idDica);
 		
 		String login = session("login");
-		if (!dica.wasFlaggedByUser(login)) {
-			dica.addUsuarioFlag(login);
-			dica.incrementaFlag();
-			
-			if (dica.getFlag() == MAX_DENUNCIAS) {
-				dao.removeById(Dica.class, idDica);
-				
-				for (MetaDica metadica : dica.getMetaDicas()) {
-					metadica.getDicasAdicionadas().remove(dica);
-					dao.merge(metadica);
-				}
-			} else {
-				dao.merge(dica);
-			}
-		} else {
-			flash("fail", "Usuário já denunciou a dica.");
-		}
-		
-		dao.flush();
+        Denunciador d = new Denunciador(MAX_DENUNCIAS,login,dao);
+        d.denuncia(dica);
 		
 		return redirect(routes.Application.tema(dica.getTema().getId()));
 	}
@@ -376,20 +317,8 @@ public class Application extends Controller {
 		MetaDica metaDica = dao.findByEntityId(MetaDica.class, idMetaDica);
 		
 		String login = session("login");
-		if (!metaDica.wasFlaggedByUser(login)) {
-			metaDica.addUsuarioFlag(login);
-			metaDica.incrementaFlag();
-			
-			if (metaDica.getFlag() == MAX_DENUNCIAS) {
-				dao.removeById(MetaDica.class, idMetaDica);
-			} else {
-				dao.merge(metaDica);
-			}
-		} else {
-			flash("fail", "Usuário já denunciou a dica.");
-		}
-		
-		dao.flush();
+        Denunciador d = new Denunciador(MAX_DENUNCIAS,login,dao);
+        d.denuncia(metaDica);
 		
 		return redirect(routes.Application.disciplina(metaDica.getDisciplina().getId()));
 	}
