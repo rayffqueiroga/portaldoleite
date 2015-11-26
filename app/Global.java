@@ -64,12 +64,13 @@ public class Global extends GlobalSettings {
 		si1.addTema(new Tema("Projeto"));
 		
 		Disciplina es = new Disciplina("Engenharia de Software");
-		es.addTema(new Tema("Requisitos de Software"));
 		es.addTema(new Tema("Qualidade de Software"));
+		es.addTema(new Tema("Gerencia de Equipe"));
+		es.addTema(new Tema("SCRUM"));
 		
-		Disciplina ad1 = new Disciplina("Análise de Dados 1");
-		ad1.addTema(new Tema("Estatística"));
-		ad1.addTema(new Tema("RStudio"));
+		Disciplina ad1 = new Disciplina("Analise de Dados 1");
+		ad1.addTema(new Tema("Introdução ao R/Octave"));
+		ad1.addTema(new Tema("Mineração de Dados"));
 		
 		dao.persist(si1);
 		dao.persist(es);
