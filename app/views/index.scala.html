@@ -1,4 +1,4 @@
-@(disciplinas: List[Disciplina])
+@(disciplinas: List[Disciplina], dicas: List[Dica])
 
 <!DOCTYPE html>
 
@@ -56,8 +56,119 @@
             			</div>
             			<p>Escolha uma disciplina ou tema ao lado para acessar os leites.</p>
             		</div>
+            		<div>
+            					<div class="uk-button-dropdown uk-align-right" data-uk-dropdown="{mode:'click'}">
+            						<button class="uk-button uk-button-primary uk-button uk-align-right"><i class="uk-icon-plus"></i> Ordenar
+            						<i class="uk-icon-caret-down"></i>
+            						</button>
+            						<div class="uk-dropdown">
+            							<ul class="uk-nav uk-nav-dropdown uk-text-center">
+                                            <li class="uk-nav-header">ESCOLHA UM TIPO</li>
+                                            <li class="uk-nav-divider"></li>
+                                            <li><a href ="/index2/@Dica.MOST_RECENTS">Recentes</a></li>
+                                            <li><a href ='/index2/@Dica.MOST_POSITIVES'>Positivas</a></li>
+                                            <li><a href ='/index2/@Dica.MOST_NEGATIVES'>Negativas</a></li>
+                                        </ul>
+            						</div>
+            					</div>
+	            			</div>
+            				<hr class="uk-article-divider-orange">
+            			
+            		<div id="dicasList">
+            				@if(dicas.isEmpty()){
+								<p>Este tema ainda não possui nenhuma dica.</p>
+							}
+	            			@for(dica <- dicas){
+	            			<div class="uk-panel uk-panel-box dica" data-uk-scrollspy="{cls:'uk-animation-fade', repeat: true}">
+	            				@if(!dica.wasFlaggedByUser(session.get("login"))){
+	            					<form name="formDenunciar@dica.getId()" method="post" action="/denunciarDica/@dica.getId()"></form>
+	            					<a data-uk-tooltip title="Denunciar dica" 
+	            						class="uk-text-warning uk-icon-hover uk-icon-flag uk-panel-badge" href="javascript:denunciarDica(@dica.getId())"></a>
+	            				}
+	            				@if(dica.getTipo().equals("DicaDisciplina")){
+	            					<p>Disciplinas importantes:</p><p class="normal-font">@dica.getTexto()</p>
+	            					@if(dica.getInstanciaDisciplina != null) {
+	            					<p>Razão:</p><p class="normal-font">@dica.getInstanciaDisciplina.getRazao()</p>}
+	            				}
+	            				@if(dica.getTipo().equals("DicaMaterial")){
+	            					<p>Link para material útil:</p><a href="@dica.getTexto()">@dica.getTexto()</a>
+	            				}
+	            				@if(dica.getTipo().equals("DicaConselho")){
+	            					<p>Conselho:</p><p class="normal-font">@dica.getTexto()</p>
+	            				}
+	            				@if(dica.getTipo().equals("DicaAssunto")){
+	            					<p>Assuntos importantes:</p><p class="normal-font">@dica.getTexto()</p>
+	            				}
+	            				
+	            				<p class="uk-article-meta uk-text-right">por @dica.getUser()</p>
+	            				<hr class="uk-article-divider-orange">
+	            				<div class="uk-grid center">
+	            					<div class="uk-width-small-1-3">
+	            						<span class="normal-font">Avaliação:</span> @dica.getIndiceConcordancia()
+		            				</div>
+		            				<div class="uk-width-small-1-3">
+		            					<span class="normal-font">Avalie:</span>
+		            					@if(!dica.wasVotedByUser(session.get("login")) && !dica.isUnvotable()){
+		            						<form name="formUpVote@dica.getId()" method="post" action="/upVoteDica/@dica.getId()"></form>
+			            					<a class="uk-icon-hover uk-icon-thumbs-up uk-text-success" href="javascript:DoPost(@dica.getId())"></a>
+			            					<a class="uk-icon-hover uk-icon-thumbs-down uk-text-success" 
+			            						data-uk-modal="{target:'#dica-add-discordancia-modal-@dica.getId()'}"></a>
+		            					} else {
+		            						<i class="uk-icon-hover uk-icon-thumbs-up"></i>
+		            						<i class="uk-icon-hover uk-icon-thumbs-down"></i>
+		            					}
+		            				</div>
+		            				<div class="uk-width-small-1-3">
+		            					<span class="normal-font">Discordâncias:</span>
+		            					<a class="uk-icon-hover uk-icon-comments-o uk-text-success"
+		            						data-uk-modal="{target:'#dica-discordancias-modal-@dica.getId()'}"></a>
+		            				</div>
+	            				</div>
+	            			</div>
+	            			<hr class="uk-article-divider">
+	            				<!---------------- MODAL DISCORDÂNCIAS ---------------->
+		            			<div id="dica-discordancias-modal-@dica.getId()" class="uk-modal">
+									<div class="uk-modal-dialog">
+										<a class="uk-modal-close uk-close"></a>
+										<div class="uk-modal-header" style="background-color:#5f5f5f"><h2>Discordâncias</h2></div>
+										<div class="uk-overflow-container">
+										@if(dica.getUsersCommentaries().entrySet().isEmpty()){
+											<p>Nenhuma discordância adicionada.</p>
+										}
+										@for(discordancia <- dica.getUsersCommentaries().entrySet()){
+		            						<div class="uk-panel uk-panel-box dica">
+				            					<p class="normal-font">@discordancia.getValue()</p>
+					            				<p class="uk-article-meta uk-text-right">por @discordancia.getKey()</p>
+				            				</div>
+				            				<hr class="uk-article-divider">
+				            			}
+				            			</div>
+				            		</div>
+				            	</div>
+				            	<!---------------- MODAL ADD DISCORDÂNCIA ---------------->
+				            	<div id="dica-add-discordancia-modal-@dica.getId()" class="uk-modal">
+									<div class="uk-modal-dialog">
+										<a class="uk-modal-close uk-close"></a>
+										<div class="uk-modal-header" style="background-color:#5f5f5f"><h2>Adicionar dica</h2></div>
+										<div class="uk-container uk-container-center">
+											<form class="uk-form center" method="post" action="/addDiscordancia/@dica.getId()">
+												<p>Por que você discorda desta dica?</p>
+												<textarea cols="70" rows="5" name="discordancia" ng-model="discordancia"
+													class="form-control" required>Discordância.</textarea>
+										</div>
+												<div class="uk-modal-footer uk-text-right" style="background-color:#5f5f5f">
+													<button class="uk-button uk-button-primary" type="submit" ng-disabled="!discordancia">Adicionar</button>
+												</div>
+											</form>
+									</div>
+								</div>
+								<!---------------- FIM MODAL ---------------->
+	            			}
+	            		</div>
+            		
             	</div>
-            </div>
+            	
+            		            </div>
         </div>
     </body>
 </html>

@@ -1,7 +1,5 @@
 package models;
 
-import models.dao.GenericDAOImpl;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +22,7 @@ import javax.persistence.Table;
 
 @Table(name="metadica")
 @Entity(name="MetaDica")
-public class MetaDica implements Comparable<MetaDica>, Denunciavel{
+public class MetaDica implements Comparable<MetaDica>{
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -44,7 +42,6 @@ public class MetaDica implements Comparable<MetaDica>, Denunciavel{
 	@ElementCollection
 	private List<String> usuariosQueJaVotaram;
 	
-
 	@ElementCollection
 	private List<String> usuarioqueQueJaDenunciaram;
 	

@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                           	 controllers.Application.index()
+GET		/index2/:sortType						 controllers.Application.index2(sortType : Integer)
 GET     /logout							 controllers.Login.logout()
 
 # Login
@@ -20,6 +21,7 @@ GET		/disciplina/:id					 controllers.Application.disciplina(id: Long)
 GET		/metadica/:id					 controllers.Application.metadica(id: Long)
 
 POST    /cadastrarDica/:id		         controllers.Application.cadastrarDica(id: Long)
+GET    /setSortType/:idSort/:idTema      controllers.Application.setSortType(idSort: Int, idTema: Long)
 POST 	/avaliar/:id					 controllers.Application.avaliarDificuldadeTema(id: Long)
 POST 	/addDiscordancia/:id			 controllers.Application.addDiscordanciaEmDica(id: Long)
 POST 	/upVoteDica/:id					 controllers.Application.upVoteDica(id: Long)
